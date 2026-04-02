@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Will Schroeder® — Human By Design</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap');
+  :root{--black:#050505;--off-black:#0a0a0a;--bone:#e8e0d4;--red:#c8391a;--gray:#3a3a3a;--gray-light:#888;--glitch-1:#ff003c;--glitch-2:#00ffe5;}
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--black);color:var(--bone);font-family:'Space Mono',monospace;cursor:none;overflow-x:hidden;}
+  body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9990;opacity:0.4;}
+  .cursor{position:fixed;width:12px;height:12px;background:var(--red);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:difference;transition:transform 0.1s ease,width 0.2s,height 0.2s;transform:translate(-50%,-50%);}
+  .cursor-ring{position:fixed;width:40px;height:40px;border:1px solid rgba(200,57,26,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform 0.15s ease,width 0.3s,height 0.3s,opacity 0.3s;}
+  .cursor.expand{width:20px;height:20px;} .cursor-ring.expand{width:70px;height:70px;border-color:rgba(200,57,26,0.3);}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:28px 48px;mix-blend-mode:difference;transition:background 0.3s,backdrop-filter 0.3s;}
+  .nav-logo{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--bone);text-decoration:none;}
+  .nav-links{display:flex;gap:48px;list-style:none;}
+  .nav-links a{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--bone);text-decoration:none;opacity:0.6;transition:opacity 0.2s;}
+  .nav-links a:hover{opacity:1;}
+  #hero{position:relative;height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 48px 60px;overflow:hidden;}
+  #webgl-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;}
+  .hero-content{position:relative;z-index:2;max-width:1200px;}
+  .hero-eyebrow{font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:var(--red);margin-bottom:20px;opacity:0;animation:fadeUp 1s ease 0.5s forwards;}
+  .hero-title{font-family:'Playfair Display',serif;font-size:clamp(72px,10vw,160px);font-weight:900;line-height:0.9;letter-spacing:-0.02em;color:var(--bone);opacity:0;animation:fadeUp 1s ease 0.7s forwards;position:relative;}
+  .hero-title .gw{display:inline-block;position:relative;}
+  .hero-title .gw::before,.hero-title .gw::after{content:attr(data-text);position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;}
+  .hero-title .gw::before{color:var(--glitch-1);animation:glitch1 8s infinite 2s;}
+  .hero-title .gw::after{color:var(--glitch-2);animation:glitch2 8s infinite 2s;}
+  .hero-sub{display:flex;align-items:flex-end;justify-content:space-between;margin-top:40px;opacity:0;animation:fadeUp 1s ease 1s forwards;}
+  .hero-descriptor{font-family:'Space Mono',monospace;font-size:12px;line-height:1.8;color:var(--gray-light);max-width:380px;}
+  .hero-descriptor span{color:var(--bone);}
+  .hero-scroll{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:16px;}
+  .hero-scroll::before{content:'';width:60px;height:1px;background:var(--red);display:block;animation:extendLine 1s ease 2s both;}
+  .hero-index{position:absolute;right:48px;top:50%;transform:translateY(-50%);font-size:10px;letter-spacing:0.3em;color:var(--gray);writing-mode:vertical-rl;opacity:0;animation:fadeIn 1s ease 1.5s forwards;}
+  .marquee-section{border-top:1px solid var(--gray);border-bottom:1px solid var(--gray);overflow:hidden;padding:16px 0;background:var(--off-black);}
+  .marquee-track{display:flex;animation:marquee 25s linear infinite;white-space:nowrap;}
+  .marquee-item{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.4em;color:var(--gray);padding:0 48px;flex-shrink:0;}
+  .marquee-item span{color:var(--red);margin-right:12px;}
+  #work{padding:120px 48px;}
+  .section-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:80px;border-top:1px solid var(--gray);padding-top:32px;}
+  .section-label{font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:var(--red);}
+  .section-title{font-family:'Playfair Display',serif;font-size:clamp(48px,6vw,96px);font-weight:900;line-height:1;color:var(--bone);}
+  .section-count{font-size:10px;letter-spacing:0.2em;color:var(--gray-light);align-self:flex-end;}
+  .work-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+  .case-card{position:relative;overflow:hidden;background:var(--off-black);aspect-ratio:16/10;cursor:none;}
+  .case-card.wide{grid-column:span 2;aspect-ratio:21/9;}
+  .case-card-img{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;}
+  .case-card:hover .case-card-img{transform:scale(1.05);}
+  .case-card-overlay{position:absolute;inset:0;transition:opacity 0.5s ease;}
+  .case-card-noise{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:3;}
+  .case-card-gradient{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.45) 50%,transparent 100%);z-index:4;}
+  .case-card-content{position:absolute;inset:0;padding:40px;display:flex;flex-direction:column;justify-content:flex-end;z-index:5;}
+  .case-tag{font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:var(--red);margin-bottom:12px;opacity:0;transform:translateY(10px);transition:opacity 0.4s,transform 0.4s;}
+  .case-card:hover .case-tag{opacity:1;transform:translateY(0);}
+  .case-title{font-family:'Playfair Display',serif;font-size:clamp(24px,3vw,48px);font-weight:900;line-height:1.05;color:var(--bone);margin-bottom:10px;transform:translateY(6px);transition:transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);text-shadow:0 2px 20px rgba(0,0,0,0.8);}
+  .case-card:hover .case-title{transform:translateY(0);}
+  .case-desc{font-size:11px;line-height:1.7;color:rgba(232,224,212,0.75);max-width:480px;opacity:0;transform:translateY(12px);transition:opacity 0.4s ease 0.05s,transform 0.4s ease 0.05s;}
+  .case-card:hover .case-desc{opacity:1;transform:translateY(0);}
+  /* Lock top-left, arrow top-right */
+  .card-top-left{position:absolute;top:20px;left:20px;z-index:6;}
+  .case-lock{width:28px;height:28px;border:1px solid rgba(200,57,26,0.5);border-radius:4px;display:flex;align-items:center;justify-content:center;background:rgba(5,5,5,0.6);backdrop-filter:blur(4px);}
+  .case-lock svg{width:12px;height:12px;stroke:var(--red);fill:none;}
+  .case-arrow{position:absolute;top:20px;right:20px;width:44px;height:44px;border:1px solid rgba(232,224,212,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:6;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);opacity:0;transform:scale(0.8) rotate(-45deg);transition:opacity 0.3s,transform 0.3s;}
+  .case-card:hover .case-arrow{opacity:1;transform:scale(1) rotate(0deg);}
+  .case-arrow svg{width:16px;height:16px;stroke:var(--bone);fill:none;}
+  #about{padding:120px 48px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;border-top:1px solid var(--gray);}
+  .about-portrait-frame{position:relative;overflow:hidden;max-width:380px;}
+  .about-portrait{width:100%;aspect-ratio:3/4;object-fit:cover;filter:grayscale(80%) contrast(1.1);display:block;}
+  .about-portrait-frame::after{content:'';position:absolute;inset:0;border:1px solid rgba(200,57,26,0.3);pointer-events:none;z-index:2;}
+  .about-glitch-bar{position:absolute;left:-20px;top:30%;width:40px;height:2px;background:var(--red);}
+  .about-eyebrow{font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:var(--red);margin-bottom:32px;display:flex;align-items:center;gap:16px;}
+  .about-eyebrow::before{content:'';width:32px;height:1px;background:var(--red);}
+  .about-headline{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,60px);font-weight:900;line-height:1.05;color:var(--bone);margin-bottom:40px;}
+  .about-headline em{font-style:italic;color:var(--red);}
+  .about-body{font-size:12px;line-height:2;color:var(--gray-light);margin-bottom:24px;}
+  .about-body strong{color:var(--bone);font-weight:400;}
+  .about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:56px;padding-top:40px;border-top:1px solid var(--gray);}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--bone);line-height:1;display:block;}
+  .stat-label{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gray-light);margin-top:8px;display:block;}
+  #philosophy{padding:120px 48px;background:var(--off-black);border-top:1px solid var(--gray);position:relative;overflow:hidden;}
+  .philosophy-bg-text{position:absolute;top:50%;left:0;transform:translateY(-50%);font-family:'Bebas Neue',sans-serif;font-size:30vw;color:rgba(255,255,255,0.015);white-space:nowrap;pointer-events:none;user-select:none;line-height:1;}
+  .philosophy-content{position:relative;z-index:1;max-width:900px;margin:0 auto;text-align:center;}
+  .philosophy-quote{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,64px);font-weight:400;font-style:italic;line-height:1.3;color:var(--bone);margin-bottom:40px;}
+  .philosophy-attribution{font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:var(--red);}
+  #contact{padding:120px 48px;border-top:1px solid var(--gray);display:flex;justify-content:space-between;align-items:flex-end;}
+  .contact-headline{font-family:'Playfair Display',serif;font-size:clamp(56px,8vw,140px);font-weight:900;line-height:0.9;color:var(--bone);margin-bottom:48px;}
+  .contact-headline span{display:block;color:transparent;-webkit-text-stroke:1px var(--bone);}
+  .contact-cta{display:inline-flex;align-items:center;gap:16px;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--black);background:var(--bone);padding:20px 40px;text-decoration:none;transition:background 0.2s,color 0.2s,gap 0.2s;}
+  .contact-cta:hover{background:var(--red);color:var(--bone);gap:24px;}
+  .contact-cta svg{width:16px;height:16px;stroke:currentColor;fill:none;}
+  .contact-links{display:flex;flex-direction:column;gap:16px;align-items:flex-end;}
+  .contact-link{font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gray-light);text-decoration:none;display:flex;align-items:center;gap:12px;transition:color 0.2s;}
+  .contact-link:hover{color:var(--bone);}
+  .contact-link::after{content:'↗';font-size:12px;}
+  footer{border-top:1px solid var(--gray);padding:24px 48px;display:flex;justify-content:space-between;align-items:center;}
+  .footer-copy{font-size:9px;letter-spacing:0.3em;color:var(--gray);text-transform:uppercase;}
+  .footer-made{font-size:9px;letter-spacing:0.2em;color:var(--gray);text-transform:uppercase;}
+  .footer-made span{color:var(--red);}
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity 0.8s ease,transform 0.8s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  .reveal-delay-1{transition-delay:0.1s;}.reveal-delay-2{transition-delay:0.2s;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes extendLine{from{width:0}to{width:60px}}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes glitch1{0%,92%,100%{opacity:0;clip-path:none;transform:none}93%{opacity:0.8;clip-path:polygon(0 20%,100% 20%,100% 30%,0 30%);transform:translate(-3px,0)}94%{opacity:0}96%{opacity:0.6;clip-path:polygon(0 50%,100% 50%,100% 70%,0 70%);transform:translate(3px,0)}97%{opacity:0}}
+  @keyframes glitch2{0%,92%,100%{opacity:0;clip-path:none;transform:none}93.5%{opacity:0.7;clip-path:polygon(0 60%,100% 60%,100% 75%,0 75%);transform:translate(4px,0)}94.5%{opacity:0}96.5%{opacity:0.5;clip-path:polygon(0 10%,100% 10%,100% 25%,0 25%);transform:translate(-2px,0)}97.5%{opacity:0}}
+  @media(max-width:768px){nav{padding:20px 24px;}#hero{padding:0 24px 48px;}#work,#about,#contact{padding:80px 24px;}.work-grid{grid-template-columns:1fr;}.case-card.wide{grid-column:span 1;aspect-ratio:16/10;}#about{grid-template-columns:1fr;}footer{flex-direction:column;gap:12px;text-align:center;}.nav-links{display:none;}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<nav>
+  <a href="#" class="nav-logo">WS®</a>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+<section id="hero">
+  <canvas id="webgl-canvas"></canvas>
+  <div class="hero-index">Principal Visual Designer — 2024</div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Will Schroeder® — Portfolio</p>
+    <h1 class="hero-title">
+      <span class="gw" data-text="HUMAN">HUMAN</span><br>
+      <span style="padding-left:clamp(40px,6vw,120px);font-style:italic;font-weight:400;">by</span><br>
+      <span class="gw" data-text="DESIGN" style="color:transparent;-webkit-text-stroke:1px var(--bone);">DESIGN</span>
+    </h1>
+    <div class="hero-sub">
+      <p class="hero-descriptor"><span>Principal Visual Designer</span> — crafting visual languages that feel inevitable, where emotional design meets systematic thinking.</p>
+      <p class="hero-scroll">Scroll</p>
+    </div>
+  </div>
+</section>
+<div class="marquee-section">
+  <div class="marquee-track">
+    <span class="marquee-item"><span>◆</span>Visual Design</span>
+    <span class="marquee-item"><span>◆</span>Brand Identity</span>
+    <span class="marquee-item"><span>◆</span>Emotional Design</span>
+    <span class="marquee-item"><span>◆</span>Design Systems</span>
+    <span class="marquee-item"><span>◆</span>Visual Language</span>
+    <span class="marquee-item"><span>◆</span>Motion Design</span>
+    <span class="marquee-item"><span>◆</span>3D / Immersive</span>
+    <span class="marquee-item"><span>◆</span>UI/UX Design</span>
+    <span class="marquee-item"><span>◆</span>Visual Design</span>
+    <span class="marquee-item"><span>◆</span>Brand Identity</span>
+    <span class="marquee-item"><span>◆</span>Emotional Design</span>
+    <span class="marquee-item"><span>◆</span>Design Systems</span>
+    <span class="marquee-item"><span>◆</span>Visual Language</span>
+    <span class="marquee-item"><span>◆</span>Motion Design</span>
+  </div>
+</div>
+<section id="work">
+  <div class="section-header reveal">
+    <div><p class="section-label">Selected Work</p><h2 class="section-title">Case Studies</h2></div>
+    <span class="section-count">09 Projects</span>
+  </div>
+  <div class="work-grid">
+
+    <a href="work/disney.html" style="display:block;text-decoration:none;">
+    <div class="case-card wide reveal">
+      <div class="case-card-img" style="background-image:url(assets/images/portfolio/disney.png);background-position:center top;"></div>
+      <div class="case-card-overlay" style="background:linear-gradient(135deg,rgba(8,18,40,0.72) 0%,rgba(10,25,55,0.55) 100%);mix-blend-mode:multiply;z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">Disney — 2024 — Visual Design · Design Systems</span>
+        <h3 class="case-title">Disney Parks<br>Companion App</h3>
+        <p class="case-desc">Defining an iconic visual language that reconnects guests to the magic — across every park, cruise, and screen.</p>
+      </div>
+      <div class="card-top-left"><div class="case-lock"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div></div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+    </a></div>
+
+    <div class="case-card reveal">
+      <div class="case-card-img" style="background-image:url(assets/images/portfolio/samsung.png);background-position:center top;"></div>
+      <div class="case-card-overlay" style="background:rgba(10,5,30,0.42);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">Samsung — Visual Design · Emotional Design</span>
+        <h3 class="case-title">OneUI — Design for Emotion</h3>
+        <p class="case-desc">Building an emotional design language for one of the world's most-used mobile operating systems.</p>
+      </div>
+      <div class="card-top-left"><div class="case-lock"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div></div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+
+    <div class="case-card reveal reveal-delay-1">
+      <div class="case-card-img" style="background-image:url(assets/images/portfolio/immersive.png);background-position:center;"></div>
+      <div class="case-card-overlay" style="background:rgba(5,5,5,0.22);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">AI · Spatial Design · Immersive Experience</span>
+        <h3 class="case-title">Immersive Imagination</h3>
+        <p class="case-desc">Designing AI-powered spatial worlds where the environment is the interface — no screen required.</p>
+      </div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+
+    <div class="case-card reveal">
+      <div class="case-card-img" style="background-image:url(assets/images/portfolio/mcgraw.png);background-position:center top;"></div>
+      <div class="case-card-overlay" style="background:linear-gradient(160deg,rgba(5,15,25,0.65) 0%,rgba(10,25,20,0.5) 100%);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">McGraw Hill — Visual Design · Product</span>
+        <h3 class="case-title">Smarty Ants</h3>
+        <p class="case-desc">A modern, inclusive visual redesign of a beloved Pre-K–2 literacy game — joy and legibility as design principles.</p>
+      </div>
+      <div class="card-top-left"><div class="case-lock"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div></div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+
+    <div class="case-card reveal reveal-delay-1">
+      <div class="case-card-img" style="background-image:url(assets/images/portfolio/dominos.png);background-position:center;"></div>
+      <div class="case-card-overlay" style="background:rgba(20,5,5,0.45);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">Domino's — Visual Design · Digital Brand</span>
+        <h3 class="case-title">Dominos.com</h3>
+        <p class="case-desc">Translating a bold, iconic brand into a digital experience that's as craveable as the product itself.</p>
+      </div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+
+    <div class="case-card reveal reveal-delay-2">
+      <div class="case-card-img" style="background:linear-gradient(135deg,#1a0a2e 0%,#2e1050 40%,#150a28 100%);"></div>
+      <div class="case-card-overlay" style="background:rgba(10,5,20,0.3);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">Founder · Visual Design · 0→1</span>
+        <h3 class="case-title">Tall Tales</h3>
+        <p class="case-desc">Building a product from scratch as founder and lead designer — shaping the visual identity, experience, and prototype alongside an engineering partner.</p>
+      </div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+    <div class="case-card reveal reveal-delay-2">
+      <div class="case-card-img" style="background-image:url(assets/images/portfolio/lego.png);background-position:center;"></div>
+      <div class="case-card-overlay" style="background:linear-gradient(135deg,rgba(0,20,35,0.72) 0%,rgba(0,30,50,0.58) 100%);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">LEGO — Visual Language · Brand System</span>
+        <h3 class="case-title">Lego Bricklink</h3>
+        <p class="case-desc">Shaping a distinct visual language for LEGO's most creative and community-driven corner.</p>
+      </div>
+      <div class="card-top-left"><div class="case-lock"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div></div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+
+    <div class="case-card reveal reveal-delay-1">
+      <div class="case-card-img" style="background:linear-gradient(135deg,#0a1a35 0%,#0d2d5a 40%,#1a1a0a 100%);"></div>
+      <div class="case-card-overlay" style="background:rgba(5,5,20,0.3);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">eBay — Visual Design · Product</span>
+        <h3 class="case-title">eBay Seller Hub</h3>
+        <p class="case-desc">Designing the command center for millions of sellers — the same complexity, trust, and scale challenges that define great host experiences.</p>
+      </div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      <div class="card-top-left"><div class="case-lock"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div></div>
+    </div>
+    <div class="case-card wide reveal">
+      <div class="case-card-img" style="background-image:url(assets/images/portfolio/barrister-mann.gif);background-size:contain;background-repeat:no-repeat;background-color:#080808;background-position:center;"></div>
+      <div class="case-card-overlay" style="background:rgba(5,5,5,0.25);z-index:2;"></div>
+      <div class="case-card-gradient"></div><div class="case-card-noise"></div>
+      <div class="case-card-content">
+        <span class="case-tag">Barrister and Mann — Brand Identity · Visual Design</span>
+        <h3 class="case-title">Barrister and Mann</h3>
+        <p class="case-desc">A scent-driven grooming brand reimagined — modern identity and packaging that honors craft and sensory experience.</p>
+      </div>
+      <div class="case-arrow"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+
+  </div>
+</section>
+<section id="philosophy">
+  <div class="philosophy-bg-text">DESIGN</div>
+  <div class="philosophy-content reveal">
+    <p class="philosophy-quote">"The best interface is no interface — or as little as possible."</p>
+    <p class="philosophy-attribution">Design Philosophy — Will Schroeder®</p>
+  </div>
+</section>
+<section id="about">
+  <div class="about-left reveal">
+    <div class="about-portrait-frame">
+      <img src="assets/images/portrait.png" alt="Will Schroeder" class="about-portrait"/>
+      <div class="about-glitch-bar"></div>
+    </div>
+  </div>
+  <div class="about-right">
+    <p class="about-eyebrow reveal">About</p>
+    <h2 class="about-headline reveal reveal-delay-1">Where craft<br>meets <em>conscience.</em></h2>
+    <p class="about-body reveal reveal-delay-1">I'm a storyteller and designer who bridges strategy and craft, transforming ideas into <strong>meaningful, human-centered experiences.</strong> For over a decade, I've worked at the intersection of brand identity, digital design systems, product design, and immersive experiences.</p>
+    <p class="about-body reveal reveal-delay-2">From <strong>Fortune 500 companies</strong> to ambitious startups, I've helped teams craft stories that connect business objectives to design decisions in ways that are both beautiful and strategic.</p>
+    <div class="about-stats reveal reveal-delay-2">
+      <div><span class="stat-num">10+</span><span class="stat-label">Years of Craft</span></div>
+      <div><span class="stat-num">50+</span><span class="stat-label">Brands Shaped</span></div>
+      <div><span class="stat-num">F500</span><span class="stat-label">Client Caliber</span></div>
+    </div>
+  </div>
+</section>
+<section id="contact">
+  <div class="contact-left reveal">
+    <h2 class="contact-headline">Let's<br><span>Make</span><br>Magic.</h2>
+    <a href="/cdn-cgi/l/email-protection#35425c595975425c595946565d475a5051504756475054415c43501b565a58" class="contact-cta">
+      Get in touch <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+    </a>
+  </div>
+  <div class="contact-right reveal">
+    <div class="contact-links">
+      <a href="https://dribbble.com" target="_blank" class="contact-link">Dribbble</a>
+      <a href="https://behance.net" target="_blank" class="contact-link">Behance</a>
+      <a href="https://medium.com" target="_blank" class="contact-link">Medium</a>
+      <a href="https://linkedin.com" target="_blank" class="contact-link">LinkedIn</a>
+    </div>
+  </div>
+</section>
+<footer>
+  <span class="footer-copy">© 2024 Will Schroeder®. All rights reserved.</span>
+  <span class="footer-made">Human <span>by</span> Design</span>
+</footer>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px';});
+  function animateRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animateRing);}
+  animateRing();
+  document.querySelectorAll('a,button,.case-card').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cursor.classList.add('expand');ring.classList.add('expand');});
+    el.addEventListener('mouseleave',()=>{cursor.classList.remove('expand');ring.classList.remove('expand');});
+  });
+  const canvas=document.getElementById('webgl-canvas'),ctx=canvas.getContext('2d');
+  let W,H,particles=[],mouse={x:-9999,y:-9999};
+  function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+  window.addEventListener('resize',resize);resize();
+  document.getElementById('hero').addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
+  document.getElementById('hero').addEventListener('mouseleave',()=>{mouse.x=-9999;mouse.y=-9999;});
+  class Particle{
+    constructor(){this.reset(true);}
+    reset(init=false){this.x=Math.random()*W;this.y=init?Math.random()*H:H+10;this.size=Math.random()*1.5+0.3;this.speedX=(Math.random()-0.5)*0.3;this.speedY=-(Math.random()*0.4+0.1);this.opacity=Math.random()*0.6+0.1;}
+    update(){const dx=mouse.x-this.x,dy=mouse.y-this.y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){const f=(120-d)/120;this.x-=dx*f*0.04;this.y-=dy*f*0.04;}this.x+=this.speedX;this.y+=this.speedY;if(this.y<-10)this.reset();}
+    draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fillStyle='rgba(200,57,26,'+this.opacity+')';ctx.fill();}
+  }
+  function drawConns(){for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle='rgba(200,57,26,'+(1-d/100)*0.15+')';ctx.lineWidth=0.5;ctx.stroke();}}}}
+  for(let i=0;i<120;i++)particles.push(new Particle());
+  function animate(){ctx.clearRect(0,0,W,H);drawConns();particles.forEach(p=>{p.update();p.draw();});requestAnimationFrame(animate);}
+  animate();
+  const reveals=document.querySelectorAll('.reveal');
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1,rootMargin:'0px 0px -60px 0px'});
+  reveals.forEach(el=>obs.observe(el));
+  const nav=document.querySelector('nav');
+  window.addEventListener('scroll',()=>{if(window.scrollY>80){nav.style.mixBlendMode='normal';nav.style.background='rgba(5,5,5,0.88)';nav.style.backdropFilter='blur(12px)';nav.style.borderBottom='1px solid rgba(58,58,58,0.4)';}else{nav

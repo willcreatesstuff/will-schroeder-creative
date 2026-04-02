@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disney Parks Companion App — Will Schroeder®</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap');
+
+:root {
+  --black: #050505;
+  --bone: #e8e0d4;
+  --red: #c8391a;
+  --gray: #3a3a3a;
+  --gray-light: #888;
+  /* Disney palette */
+  --disney-blue: #1a2d5a;
+  --disney-light: #e8eef8;
+  --disney-glass: rgba(255,255,255,0.55);
+  --disney-soft: #c5d3ee;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--black); color: var(--bone); font-family: 'Space Mono', monospace; overflow-x: hidden; cursor: none; }
+
+/* NOISE */
+body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:9990; opacity:0.35; }
+
+/* CURSOR */
+.cursor { position:fixed; width:12px; height:12px; background:var(--red); border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:difference; transform:translate(-50%,-50%); transition:width 0.2s,height 0.2s; }
+.cursor-ring { position:fixed; width:40px; height:40px; border:1px solid rgba(200,57,26,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width 0.3s,height 0.3s; }
+.cursor.expand { width:20px; height:20px; }
+.cursor-ring.expand { width:64px; height:64px; }
+
+/* NAV */
+nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justify-content:space-between; align-items:center; padding:28px 48px; transition:background 0.4s, backdrop-filter 0.4s; }
+nav.scrolled { background:rgba(5,5,5,0.88); backdrop-filter:blur(12px); border-bottom:1px solid rgba(58,58,58,0.4); }
+.nav-logo { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:var(--bone); text-decoration:none; }
+.nav-back { font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:var(--bone); text-decoration:none; opacity:0.6; transition:opacity 0.2s; display:flex; align-items:center; gap:10px; }
+.nav-back:hover { opacity:1; }
+.nav-back::before { content:'←'; }
+
+/* ═══════════════════════════════════
+   HERO
+═══════════════════════════════════ */
+#hero {
+  position:relative; height:100vh; display:flex; flex-direction:column;
+  justify-content:flex-end; padding:0 48px 80px; overflow:hidden;
+}
+.hero-bg {
+  position:absolute; inset:0;
+  background-image: url('../assets/images/disney/hero.png');
+  background-size:cover; background-position:center top;
+  filter:brightness(0.45) saturate(0.7);
+}
+.hero-bg-overlay {
+  position:absolute; inset:0;
+  background: linear-gradient(to top, rgba(5,5,5,1) 0%, rgba(5,5,5,0.6) 40%, rgba(5,5,5,0.2) 100%);
+}
+.hero-scanlines {
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none;
+}
+.hero-meta {
+  position:relative; z-index:2;
+  display:flex; gap:48px; margin-bottom:32px;
+  opacity:0; animation:fadeUp 1s ease 0.4s forwards;
+}
+.hero-meta-item {}
+.hero-meta-label { font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--red); margin-bottom:6px; }
+.hero-meta-value { font-size:11px; letter-spacing:0.15em; color:var(--gray-light); }
+.hero-title {
+  position:relative; z-index:2;
+  font-family:'Playfair Display',serif; font-size:clamp(56px,8vw,130px);
+  font-weight:900; line-height:0.88; letter-spacing:-0.03em; color:var(--bone);
+  opacity:1;
+}
+.hero-title em { font-style:italic; font-weight:400; }
+.hero-scroll-hint {
+  position:absolute; bottom:32px; right:48px; z-index:2;
+  font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--red);
+  display:flex; align-items:center; gap:12px;
+  opacity:0; animation:fadeIn 1s ease 1.4s forwards;
+}
+.hero-scroll-hint::after { content:''; display:block; width:48px; height:1px; background:var(--red); animation:extendLine 1s ease 2s both; }
+@keyframes extendLine { from{width:0} to{width:48px} }
+
+/* ═══════════════════════════════════
+   OVERVIEW
+═══════════════════════════════════ */
+#overview {
+  padding:120px 48px; display:grid; grid-template-columns:1fr 2fr; gap:80px; align-items:start;
+  border-top:1px solid var(--gray);
+}
+.section-label { font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--red); margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+.section-label::before { content:''; width:24px; height:1px; background:var(--red); }
+.overview-left { position:sticky; top:140px; }
+.overview-eyebrow { font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--red); margin-bottom:20px; }
+.overview-num { font-family:'Bebas Neue',sans-serif; font-size:100px; color:rgba(255,255,255,0.05); line-height:1; margin-bottom:-12px; }
+.overview-heading { font-family:'Playfair Display',serif; font-size:clamp(28px,3vw,44px); font-weight:900; line-height:1.1; color:var(--bone); }
+.overview-right {}
+.overview-intro { font-size:16px; line-height:1.9; color:var(--bone); margin-bottom:40px; font-family:'Playfair Display',serif; font-weight:400; font-style:italic; border-left:2px solid var(--red); padding-left:28px; }
+.overview-body { font-size:12px; line-height:2.1; color:var(--gray-light); }
+.overview-body strong { color:var(--bone); font-weight:400; }
+
+/* ═══════════════════════════════════
+   PROBLEM
+═══════════════════════════════════ */
+#problem { padding:0 48px 120px; }
+.problem-header { margin-bottom:60px; border-top:1px solid var(--gray); padding-top:32px; display:flex; justify-content:space-between; align-items:baseline; }
+.problem-title { font-family:'Playfair Display',serif; font-size:clamp(36px,5vw,72px); font-weight:900; color:var(--bone); }
+.problem-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; }
+.problem-item { background:#2e2e2e; padding:40px 28px; position:relative; overflow:hidden; transition:background 0.3s; }
+.problem-item:hover { background:#444; }
+.problem-item::before { content:attr(data-num); position:absolute; top:16px; right:16px; font-family:'Bebas Neue',sans-serif; font-size:48px; color:rgba(255,255,255,0.06); line-height:1; }
+.problem-icon { font-size:20px; margin-bottom:20px; }
+.problem-text { font-size:11px; line-height:1.8; color:var(--gray-light); }
+.problem-text strong { display:block; color:var(--bone); font-weight:700; margin-bottom:8px; font-size:12px; }
+
+/* ═══════════════════════════════════
+   RESEARCH COLLAGE
+═══════════════════════════════════ */
+#research { padding:0 48px 120px; }
+.research-header { margin-bottom:60px; border-top:1px solid var(--gray); padding-top:32px; }
+.research-img { width:100%; display:block; }
+
+/* ═══════════════════════════════════
+   CONCEPTS — dark section
+═══════════════════════════════════ */
+#concepts { padding:0 48px 120px; }
+.concepts-header { margin-bottom:60px; border-top:1px solid var(--gray); padding-top:32px; display:flex; justify-content:space-between; align-items:baseline; }
+.concepts-intro { font-size:12px; line-height:2; color:var(--gray-light); max-width:480px; }
+.concepts-img { width:100%; display:block; border:1px solid var(--gray); }
+
+/* ═══════════════════════════════════
+   LOOKING GLASS — LIGHT WORLD BEGINS
+═══════════════════════════════════ */
+#looking-glass {
+  background: linear-gradient(180deg, var(--black) 0%, #0a1428 6%, #152244 18%, #2a4070 32%, #8aaad4 55%, #c5d3ee 72%, #e8eef8 100%);
+  padding:120px 48px;
+  position:relative; overflow:hidden;
+}
+.lg-bg-circle {
+  position:absolute; width:60vw; height:60vw; border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%);
+  top:10%; right:-10%; pointer-events:none;
+}
+.lg-label { font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--red); margin-bottom:24px; opacity:1; }
+.lg-concept-name {
+  font-family:'Playfair Display',serif; font-size:clamp(56px,8vw,120px);
+  font-weight:900; line-height:0.9; color:#fff;
+  margin-bottom:16px;
+  text-shadow: 0 2px 40px rgba(10,25,70,0.35);
+}
+.lg-concept-name em { font-style:italic; font-weight:400; opacity:0.75; }
+.lg-tagline { font-family:'Playfair Display',serif; font-size:clamp(18px,2.5vw,28px); font-style:italic; color:#fff; opacity:0.88; margin-bottom:64px; max-width:600px; line-height:1.6; text-shadow: 0 1px 20px rgba(10,25,70,0.3); }
+.lg-principles { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin-bottom:80px; }
+.lg-principle {
+  background:rgba(255,255,255,0.5); backdrop-filter:blur(12px);
+  padding:40px 32px; border:1px solid rgba(255,255,255,0.6);
+}
+.lg-principle-num { font-family:'Bebas Neue',sans-serif; font-size:56px; color:var(--disney-blue); opacity:0.15; line-height:1; margin-bottom:-8px; }
+.lg-principle-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--disney-blue); margin-bottom:12px; }
+.lg-principle-body { font-size:11px; line-height:1.9; color:#2a3f6a; font-family:'Space Mono',monospace; }
+
+/* ═══════════════════════════════════
+   MOOD / INSPIRATION — light bg
+═══════════════════════════════════ */
+#mood { background:#e8eef8; padding:0 48px 0; }
+.mood-img { width:100%; display:block; }
+
+/* ═══════════════════════════════════
+   SYSTEM — light bg
+═══════════════════════════════════ */
+#system { background:#e8eef8; padding:80px 48px; }
+.system-header { margin-bottom:60px; border-top:1px solid var(--disney-soft); padding-top:32px; display:flex; justify-content:space-between; align-items:baseline; }
+.system-label { font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--disney-blue); opacity:0.5; }
+.system-heading { font-family:'Playfair Display',serif; font-size:clamp(36px,5vw,72px); font-weight:900; color:var(--disney-blue); }
+.system-img { width:100%; display:block; }
+
+/* ═══════════════════════════════════
+   SCREENS — light bg
+═══════════════════════════════════ */
+#screens { background:#e8eef8; padding:0 48px 80px; }
+.screens-grid { display:grid; grid-template-columns:1fr 1fr; gap:3px; }
+.screen-img { width:100%; display:block; }
+.screen-full { grid-column:span 2; }
+
+/* ═══════════════════════════════════
+   MODES GIF — back to dark
+═══════════════════════════════════ */
+#modes {
+  background: linear-gradient(180deg, #e8eef8 0%, #c5d3ee 15%, #1a2d5a 40%, var(--black) 70%);
+  padding:80px 48px 120px;
+}
+.modes-header { margin-bottom:60px; padding-top:32px; border-top:1px solid rgba(26,45,90,0.3); display:flex; justify-content:space-between; align-items:baseline; }
+.modes-label { font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--disney-blue); }
+.modes-heading { font-family:'Playfair Display',serif; font-size:clamp(36px,5vw,72px); font-weight:900; color:var(--disney-blue); }
+.modes-img { width:100%; display:block; }
+
+/* ═══════════════════════════════════
+   HERO APP IMAGE — full bleed
+═══════════════════════════════════ */
+#hero-app { padding:0 48px 0; background:var(--black); }
+.hero-app-img { width:100%; display:block; }
+
+/* ═══════════════════════════════════
+   NEXT PROJECT
+═══════════════════════════════════ */
+#next {
+  padding:120px 48px; border-top:1px solid var(--gray);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.next-label { font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--gray-light); margin-bottom:16px; }
+.next-title { font-family:'Playfair Display',serif; font-size:clamp(36px,5vw,72px); font-weight:900; color:var(--bone); }
+.next-arrow { width:80px; height:80px; border:1px solid var(--gray); border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; transition:border-color 0.3s, background 0.3s; flex-shrink:0; }
+.next-arrow:hover { border-color:var(--red); background:var(--red); }
+.next-arrow svg { width:24px; height:24px; stroke:var(--bone); fill:none; }
+
+/* ═══════════════════════════════════
+   FOOTER
+═══════════════════════════════════ */
+footer { border-top:1px solid var(--gray); padding:24px 48px; display:flex; justify-content:space-between; }
+.footer-copy { font-size:9px; letter-spacing:0.3em; color:var(--gray); text-transform:uppercase; }
+
+/* ── REVEAL SYSTEM ── */
+/* Default: fade + rise */
+.reveal {
+  opacity:0; transform:translateY(44px);
+  transition:opacity 1s cubic-bezier(0.16,1,0.3,1), transform 1s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* Delays */
+.reveal-delay-1 { transition-delay:0.12s; }
+.reveal-delay-2 { transition-delay:0.24s; }
+.reveal-delay-3 { transition-delay:0.36s; }
+.reveal-delay-4 { transition-delay:0.48s; }
+
+/* Image reveal: scale down from slight zoom */
+.reveal-img {
+  opacity:0; transform:scale(1.04);
+  transition:opacity 1.2s cubic-bezier(0.16,1,0.3,1), transform 1.2s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal-img.visible { opacity:1; transform:scale(1); }
+
+/* Dreamy reveal for Looking Glass section */
+.reveal-dream {
+  opacity:0; transform:translateY(24px);
+  transition:opacity 1.6s cubic-bezier(0.16,1,0.3,1), transform 1.6s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal-dream.visible { opacity:1; transform:translateY(0); }
+.reveal-dream-delay-1 { transition-delay:0.2s; }
+.reveal-dream-delay-2 { transition-delay:0.4s; }
+.reveal-dream-delay-3 { transition-delay:0.6s; }
+
+/* Card deal: problem items slide up with stagger */
+.reveal-card {
+  opacity:0; transform:translateY(60px);
+  transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal-card.visible { opacity:1; transform:translateY(0); }
+
+/* Principle card: scale + fade */
+.reveal-principle {
+  opacity:0; transform:translateY(32px) scale(0.97);
+  transition:opacity 1s cubic-bezier(0.16,1,0.3,1), transform 1s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal-principle.visible { opacity:1; transform:translateY(0) scale(1); }
+
+/* Word-by-word for modes heading */
+.modes-word {
+  display:inline-block; opacity:0; transform:translateY(20px);
+  transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.modes-word.visible { opacity:1; transform:translateY(0); }
+.modes-word:nth-child(2) { transition-delay:0.15s; }
+.modes-word:nth-child(3) { transition-delay:0.3s; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+@media(max-width:768px){
+  nav{padding:20px 24px;}
+  #hero{padding:0 24px 60px;}
+  #overview,#problem,#research,#concepts,#looking-glass,#mood,#system,#screens,#modes,#hero-app,#next{padding-left:24px;padding-right:24px;}
+  #overview{grid-template-columns:1fr;}
+  .overview-left{position:static;}
+  .problem-grid{grid-template-columns:1fr 1fr;}
+  .lg-principles{grid-template-columns:1fr;}
+  .screens-grid{grid-template-columns:1fr;}
+  .screen-full{grid-column:span 1;}
+  #next{flex-direction:column;gap:40px;}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="nav">
+  <a href="../index.html" class="nav-logo">WS®</a>
+  <a href="../index.html#work" class="nav-back">All Work</a>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero">
+  <div class="hero-bg" style="background-image:url('../assets/images/disney/hero.png');"></div>
+  <div class="hero-bg-overlay"></div>
+  <div class="hero-scanlines"></div>
+
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Client</div>
+      <div class="hero-meta-value">Disney</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Year</div>
+      <div class="hero-meta-value">2024</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Service</div>
+      <div class="hero-meta-value">UI/UX · Visual Design · Design Systems</div>
+    </div>
+  </div>
+
+  <h1 class="hero-title">
+    <span class="hero-line" style="display:block;opacity:0;animation:fadeUp 1s cubic-bezier(0.16,1,0.3,1) 0.6s forwards;">Disney Parks</span>
+    <span class="hero-line" style="display:block;opacity:0;animation:fadeUp 1s cubic-bezier(0.16,1,0.3,1) 0.82s forwards;"><em>Companion</em></span>
+    <span class="hero-line" style="display:block;opacity:0;animation:fadeUp 1s cubic-bezier(0.16,1,0.3,1) 1.0s forwards;">App</span>
+  </h1>
+
+  <div class="hero-scroll-hint">Scroll</div>
+</section>
+
+<!-- ═══ OVERVIEW ═══ -->
+<section id="overview">
+  <div class="overview-left reveal">
+    <div class="overview-eyebrow">↳ Project Overview</div>
+    <div class="overview-num">01</div>
+    <h2 class="overview-heading">The Magic<br>is Fading</h2>
+  </div>
+  <div class="overview-right">
+    <p class="overview-intro reveal reveal-delay-1">
+      "The best interface is no interface — or as little as possible."
+    </p>
+    <p class="overview-body reveal reveal-delay-2">
+      Disney Parks and Cruises are among the most magical places on Earth, but guests are repeatedly pulled away from the wonder of the physical experience and locked into a <strong>cumbersome interface that adds stress and anxiety</strong> to an already overstimulated mind.<br><br>
+      Their phone batteries are draining, and so is the magic, as they long for a guided and highly functional experience. To inform our design direction, we explored three key research areas: <strong>Disney's century-long history</strong>, the real guest experience at the parks, and best-in-class emotional and immersive experiences.
+    </p>
+  </div>
+</section>
+
+<!-- ═══ PROBLEM ═══ -->
+<section id="problem">
+  <div class="problem-header reveal">
+    <div>
+      <div class="section-label">↳ The Problem</div>
+      <h2 class="problem-title">Five Ways the<br><em style="font-style:italic">App Breaks</em> the Spell</h2>
+    </div>
+    <div style="font-size:10px;letter-spacing:0.2em;color:var(--gray-light);">Current State</div>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-item reveal-card" data-num="01">
+      <div class="problem-icon">⊘</div>
+      <div class="problem-text"><strong>Feature Overload</strong>Overloaded with features and transactional patterns that bury the experience.</div>
+    </div>
+    <div class="problem-item reveal-card" style="transition-delay:0.1s;" data-num="02">
+      <div class="problem-icon">◈</div>
+      <div class="problem-text"><strong>Advertising Surface</strong>Used as an upsell and advertising surface rather than a guest companion.</div>
+    </div>
+    <div class="problem-item reveal-card" style="transition-delay:0.2s;" data-num="03">
+      <div class="problem-icon">▣</div>
+      <div class="problem-text"><strong>Visually Corporate</strong>Lacking Disney's emotional essence — visually generic, not magical.</div>
+    </div>
+    <div class="problem-item reveal-card" style="transition-delay:0.3s;" data-num="04">
+      <div class="problem-icon">◎</div>
+      <div class="problem-text"><strong>Overstimulating</strong>Complex and overwhelming in an already high-stimulus environment.</div>
+    </div>
+    <div class="problem-item reveal-card" style="transition-delay:0.4s;" data-num="05">
+      <div class="problem-icon">⌁</div>
+      <div class="problem-text"><strong>Battery Draining</strong>Encouraged constant phone use, pulling guests away from the physical magic.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ RESEARCH COLLAGE ═══ -->
+<section id="research" style="padding:0 48px 120px;">
+  <div class="research-header reveal">
+    <div class="section-label">↳ Research</div>
+    <h2 class="problem-title" style="font-size:clamp(28px,4vw,56px)">A Century of<br><em style="font-style:italic">Wonder</em></h2>
+  </div>
+  <img src="../assets/images/disney/collage.png" alt="Disney research collage" class="research-img reveal-img">
+</section>
+
+<!-- ═══ CONCEPTS ═══ -->
+<section id="concepts">
+  <div class="concepts-header reveal">
+    <div>
+      <div class="section-label">↳ Design Process</div>
+      <h2 class="problem-title" style="font-size:clamp(28px,4vw,56px)">Four<br><em style="font-style:italic">Big Ideas</em></h2>
+    </div>
+    <p class="concepts-intro">Our research led us to four distinct design directions, each drawing from a different facet of Disney's emotional legacy.</p>
+  </div>
+  <img src="../assets/images/disney/process.png" alt="Four design concepts" class="concepts-img reveal-img">
+</section>
+
+<!-- ═══ LOOKING GLASS ═══ -->
+<section id="looking-glass">
+  <div class="lg-bg-circle"></div>
+  <div class="reveal-dream">
+    <div class="lg-label">↳ Design Language System</div>
+    <h2 class="lg-concept-name">The<br><em>Looking</em><br>Glass</h2>
+    <p class="lg-tagline">Inspired by the starlights to Neverland and Cinderella's glass slipper — a serene interface as a digital window into the magic of Disney.</p>
+  </div>
+  <div class="lg-principles">
+    <div class="lg-principle reveal-principle">
+      <div class="lg-principle-num">01</div>
+      <div class="lg-principle-title">Light as Guide</div>
+      <div class="lg-principle-body">Light serves as a navigational metaphor — guiding guests toward what matters without demanding attention.</div>
+    </div>
+    <div class="lg-principle reveal-principle reveal-dream-delay-1">
+      <div class="lg-principle-num">02</div>
+      <div class="lg-principle-title">Glass as Frame</div>
+      <div class="lg-principle-body">Translucent surfaces create a subtle digital frame, allowing the physical park experience to take center stage.</div>
+    </div>
+    <div class="lg-principle reveal-principle reveal-dream-delay-2">
+      <div class="lg-principle-num">03</div>
+      <div class="lg-principle-title">Ambient Modes</div>
+      <div class="lg-principle-body">Day, night, and sunset modes build an emotional bridge between the interface and the living park around it.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MOOD ═══ -->
+<section id="mood" style="padding-bottom:0;">
+  <img src="../assets/images/disney/mood.png" alt="Looking Glass mood and inspiration" class="mood-img reveal-img">
+</section>
+
+<!-- ═══ SYSTEM ═══ -->
+<section id="system">
+  <div class="system-header reveal">
+    <div>
+      <div class="system-label">↳ Design System</div>
+      <h2 class="system-heading" style="color:var(--disney-blue)">Visual<br><span style="font-style:italic;font-weight:400;font-family:'Playfair Display',serif">Language</span></h2>
+    </div>
+  </div>
+  <img src="../assets/images/disney/system.png" alt="Design system" class="system-img reveal-img">
+</section>
+
+<!-- ═══ SCREENS ═══ -->
+<section id="screens">
+  <div class="screens-grid">
+    <div class="screen-full">
+      <img src="../assets/images/disney/hero-desktop.jpg" alt="Disney Parks desktop experience" class="screen-img reveal-img">
+    </div>
+    <div>
+      <img src="../assets/images/disney/browse.png" alt="Browse screen" class="screen-img reveal-img">
+    </div>
+    <div>
+      <img src="../assets/images/disney/plp.png" alt="Product listing" class="screen-img reveal-img" style="transition-delay:0.15s;">
+    </div>
+    <div class="screen-full">
+      <img src="../assets/images/disney/planner.png" alt="Day Planner" class="screen-img reveal-img">
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MODES ═══ -->
+<section id="modes">
+  <div class="modes-header reveal">
+    <div>
+      <div class="modes-label">↳ Ambient Modes</div>
+      <h2 class="modes-heading">
+    <span class="modes-word">Day</span>
+    <span class="modes-word"> · Night</span><br>
+    <span class="modes-word"><em style="font-style:italic;font-weight:400">· Sunset</em></span>
+  </h2>
+    </div>
+    <p style="font-size:11px;line-height:1.9;color:var(--disney-blue);max-width:360px;opacity:0.7">The interface responds to the park's ambient light — matching the emotional tone of the guest's moment.</p>
+  </div>
+  <img src="../assets/images/disney/modes.gif" alt="Day, night, and sunset modes" class="modes-img reveal-img">
+</section>
+
+<!-- ═══ HERO APP ═══ -->
+<section id="hero-app">
+  <img src="../assets/images/disney/hero.png" alt="Disney Parks App hero" class="hero-app-img reveal-img">
+</section>
+
+<!-- ═══ NEXT PROJECT ═══ -->
+<section id="next">
+  <div class="reveal">
+    <div class="next-label">Next Project</div>
+    <h2 class="next-title">OneUI —<br><em style="font-style:italic;font-weight:400">Design for Emotion</em></h2>
+  </div>
+  <a href="samsung.html" class="next-arrow reveal">
+    <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+  </a>
+</section>
+
+<footer>
+  <span class="footer-copy">© 2024 Will Schroeder®. All rights reserved.</span>
+  <span class="footer-copy" style="color:var(--gray-light)">Disney Parks Companion App — 2024</span>
+</footer>
+
+<script>
+// CURSOR
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px';});
+function animateRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animateRing);}
+animateRing();
+document.querySelectorAll('a').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursor.classList.add('expand');ring.classList.add('expand');});
+  el.addEventListener('mouseleave',()=>{cursor.classList.remove('expand');ring.classList.remove('expand');});
+});
+
+// NAV
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>80);
+});
+
+// PARALLAX HERO
+const heroBg = document.querySelector('.hero-bg');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const heroH = document.getElementById('hero').offsetHeight;
+  if (scrolled < heroH * 1.2) {
+    heroBg.style.transform = 'translateY(' + (scrolled * 0.38) + 'px)';
+  }
+}, { passive: true });
+
+// SCROLL REVEAL — all reveal variants
+const revealSelectors = '.reveal, .reveal-img, .reveal-dream, .reveal-card, .reveal-principle, .modes-word';
+const reveals = document.querySelectorAll(revealSelectors);
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.07, rootMargin: '0px 0px -30px 0px' });
+reveals.forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
