@@ -108,11 +108,37 @@
   @keyframes glitch1{0%,92%,100%{opacity:0;clip-path:none;transform:none}93%{opacity:0.8;clip-path:polygon(0 20%,100% 20%,100% 30%,0 30%);transform:translate(-3px,0)}94%{opacity:0}96%{opacity:0.6;clip-path:polygon(0 50%,100% 50%,100% 70%,0 70%);transform:translate(3px,0)}97%{opacity:0}}
   @keyframes glitch2{0%,92%,100%{opacity:0;clip-path:none;transform:none}93.5%{opacity:0.7;clip-path:polygon(0 60%,100% 60%,100% 75%,0 75%);transform:translate(4px,0)}94.5%{opacity:0}96.5%{opacity:0.5;clip-path:polygon(0 10%,100% 10%,100% 25%,0 25%);transform:translate(-2px,0)}97.5%{opacity:0}}
   @media(max-width:768px){nav{padding:20px 24px;}#hero{padding:0 24px 48px;}#work,#about,#contact{padding:80px 24px;}.work-grid{grid-template-columns:1fr;}.case-card.wide{grid-column:span 1;aspect-ratio:16/10;}#about{grid-template-columns:1fr;}footer{flex-direction:column;gap:12px;text-align:center;}.nav-links{display:none;}}
+  /* Password modal */
+  .pw-overlay{position:fixed;inset:0;background:rgba(5,5,5,0.92);backdrop-filter:blur(16px);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease;}
+  .pw-overlay.active{opacity:1;pointer-events:all;}
+  .pw-modal{display:flex;flex-direction:column;align-items:center;gap:0;width:100%;max-width:360px;padding:0 24px;}
+  .pw-label{font-size:9px;letter-spacing:0.5em;text-transform:uppercase;color:var(--red);margin-bottom:28px;}
+  .pw-input-wrap{position:relative;width:100%;border-bottom:1px solid rgba(232,224,212,0.2);transition:border-color 0.2s;}
+  .pw-input-wrap.error{border-color:var(--red);}
+  .pw-input-wrap.success{border-color:rgba(232,224,212,0.6);}
+  .pw-input{width:100%;background:none;border:none;outline:none;font-family:'Space Mono',monospace;font-size:18px;letter-spacing:0.15em;color:var(--bone);padding:12px 0;text-align:center;caret-color:var(--red);}
+  .pw-input::placeholder{color:rgba(232,224,212,0.2);letter-spacing:0.3em;}
+  .pw-hint{font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--red);margin-top:20px;opacity:0;transition:opacity 0.2s;height:14px;}
+  .pw-hint.visible{opacity:1;}
+  .pw-close{position:absolute;top:32px;right:32px;background:none;border:none;cursor:none;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gray-light);padding:8px;transition:color 0.2s;}
+  .pw-close:hover{color:var(--bone);}
 </style>
 </head>
 <body>
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Password modal -->
+<div class="pw-overlay" id="pwOverlay">
+  <button class="pw-close" id="pwClose">✕ close</button>
+  <div class="pw-modal">
+    <p class="pw-label">Protected Work</p>
+    <div class="pw-input-wrap" id="pwInputWrap">
+      <input class="pw-input" id="pwInput" type="password" placeholder="password" autocomplete="off" spellcheck="false"/>
+    </div>
+    <p class="pw-hint" id="pwHint">incorrect password</p>
+  </div>
+</div>
 <nav>
   <a href="#" class="nav-logo">WS®</a>
   <ul class="nav-links">
@@ -338,6 +364,54 @@
   reveals.forEach(el=>obs.observe(el));
   const nav=document.querySelector('nav');
   window.addEventListener('scroll',()=>{if(window.scrollY>80){nav.style.mixBlendMode='normal';nav.style.background='rgba(5,5,5,0.88)';nav.style.backdropFilter='blur(12px)';nav.style.borderBottom='1px solid rgba(58,58,58,0.4)';}else{nav.style.mixBlendMode='difference';nav.style.background='';nav.style.backdropFilter='';nav.style.borderBottom='';}});
+
+  // Password protection for locked projects
+  const PW='massimo';
+  const overlay=document.getElementById('pwOverlay');
+  const pwInput=document.getElementById('pwInput');
+  const pwWrap=document.getElementById('pwInputWrap');
+  const pwHint=document.getElementById('pwHint');
+  const pwClose=document.getElementById('pwClose');
+  let pendingHref=null;
+
+  document.querySelectorAll('a[href]').forEach(link=>{
+    const card=link.querySelector('.case-lock');
+    if(!card)return;
+    link.addEventListener('click',e=>{
+      e.preventDefault();
+      pendingHref=link.href;
+      pwInput.value='';
+      pwWrap.classList.remove('error','success');
+      pwHint.classList.remove('visible');
+      overlay.classList.add('active');
+      setTimeout(()=>pwInput.focus(),50);
+    });
+  });
+
+  function closeModal(){overlay.classList.remove('active');pendingHref=null;}
+  pwClose.addEventListener('click',closeModal);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('active'))closeModal();});
+
+  pwInput.addEventListener('keydown',e=>{
+    if(e.key!=='Enter')return;
+    if(pwInput.value===PW){
+      pwWrap.classList.remove('error');
+      pwWrap.classList.add('success');
+      pwHint.classList.remove('visible');
+      setTimeout(()=>{closeModal();window.location.href=pendingHref;},200);
+    }else{
+      pwWrap.classList.add('error');
+      pwHint.classList.add('visible');
+      pwInput.value='';
+      pwInput.focus();
+    }
+  });
+
+  pwInput.addEventListener('input',()=>{
+    pwWrap.classList.remove('error');
+    pwHint.classList.remove('visible');
+  });
 
 </script>
 </body>
