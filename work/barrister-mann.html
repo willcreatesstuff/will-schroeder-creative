@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barrister and Mann — Will Schroeder®</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap');
+:root{--black:#050505;--bone:#e8e0d4;--red:#c8391a;--gray:#3a3a3a;--gray-light:#888;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--bone);font-family:'Space Mono',monospace;overflow-x:hidden;cursor:none;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9990;opacity:0.35;}
+.cursor{position:fixed;width:12px;height:12px;background:var(--red);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:difference;transform:translate(-50%,-50%);transition:width .2s,height .2s;}
+.cursor-ring{position:fixed;width:40px;height:40px;border:1px solid rgba(200,57,26,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .3s,height .3s;}
+.cursor.expand{width:20px;height:20px;}.cursor-ring.expand{width:64px;height:64px;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:28px 48px;transition:background .4s;}
+nav.scrolled{background:rgba(5,5,5,0.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(58,58,58,0.4);}
+.nav-logo{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--bone);text-decoration:none;}
+.nav-back{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--bone);text-decoration:none;opacity:.6;transition:opacity .2s;display:flex;align-items:center;gap:10px;}
+.nav-back:hover{opacity:1;}.nav-back::before{content:'←';}
+
+/* HERO */
+#hero{position:relative;height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 48px 80px;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(0.35) saturate(0.7);}
+.hero-bg-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(5,5,5,1) 0%,rgba(5,5,5,0.5) 45%,rgba(5,5,5,0.1) 100%);}
+.hero-scanlines{position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;}
+.hero-meta{position:relative;z-index:3;display:flex;gap:48px;margin-bottom:32px;opacity:0;animation:fadeUp 1s ease .4s forwards;}
+.hero-meta-label{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+.hero-meta-value{font-size:11px;letter-spacing:.15em;color:var(--gray-light);}
+.hero-title{position:relative;z-index:3;font-family:'Playfair Display',serif;font-size:clamp(56px,8vw,130px);font-weight:900;line-height:.88;letter-spacing:-.03em;color:var(--bone);}
+.hero-title em{font-style:italic;font-weight:400;}
+.hero-eyeline{position:relative;z-index:3;font-family:'Playfair Display',serif;font-size:clamp(16px,1.8vw,24px);font-style:italic;color:rgba(232,224,212,0.5);margin-top:20px;opacity:0;animation:fadeIn 1s ease 1.2s forwards;}
+.hero-scroll-hint{position:absolute;bottom:32px;right:48px;z-index:3;font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:12px;opacity:0;animation:fadeIn 1s ease 1.4s forwards;}
+.hero-scroll-hint::after{content:'';display:block;width:48px;height:1px;background:var(--red);animation:extendLine 1s ease 2s both;}
+
+/* SHARED */
+.section-label{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.section-label::before{content:'';width:24px;height:1px;background:var(--red);}
+.section-header{border-top:1px solid var(--gray);padding-top:32px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:60px;}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(36px,5vw,72px);font-weight:900;color:var(--bone);line-height:1.05;}
+.section-title em{font-style:italic;font-weight:400;}
+.section-note{font-size:11px;line-height:1.9;color:var(--gray-light);max-width:320px;align-self:flex-end;}
+.full-img{width:100%;display:block;}
+.pad{padding:0 48px 120px;}
+.pad-sm{padding:0 48px 3px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;}
+
+/* OVERVIEW */
+#overview{padding:120px 48px;display:grid;grid-template-columns:1fr 2fr;gap:80px;align-items:start;border-top:1px solid var(--gray);}
+.overview-left{position:sticky;top:140px;}
+.overview-eyebrow{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--red);margin-bottom:20px;}
+.overview-num{font-family:'Bebas Neue',sans-serif;font-size:100px;color:rgba(255,255,255,0.05);line-height:1;margin-bottom:-12px;}
+.overview-heading{font-family:'Playfair Display',serif;font-size:clamp(32px,3.5vw,52px);font-weight:900;line-height:1.05;color:var(--bone);}
+.overview-intro{font-family:'Playfair Display',serif;font-size:17px;font-weight:400;font-style:italic;line-height:1.85;color:var(--bone);border-left:2px solid var(--red);padding-left:28px;margin-bottom:40px;}
+.overview-body{font-size:12px;line-height:2.2;color:var(--gray-light);}
+.overview-body strong{color:var(--bone);font-weight:400;}
+.overview-body p+p{margin-top:24px;}
+
+/* ROLE CARDS */
+#role{padding:0 48px 120px;}
+.role-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
+.role-item{background:#181818;padding:44px 32px;transition:background .3s;}
+.role-item:hover{background:#242424;}
+.role-num{font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,0.05);line-height:1;margin-bottom:-2px;}
+.role-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--bone);margin-bottom:12px;line-height:1.2;}
+.role-body{font-size:11px;line-height:2;color:var(--gray-light);}
+
+/* NEXT */
+#next{padding:120px 48px;border-top:1px solid var(--gray);display:flex;justify-content:space-between;align-items:center;}
+.next-label{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--gray-light);margin-bottom:16px;}
+.next-title{font-family:'Playfair Display',serif;font-size:clamp(36px,5vw,72px);font-weight:900;color:var(--bone);}
+.next-arrow{width:80px;height:80px;border:1px solid var(--gray);border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:border-color .3s,background .3s;flex-shrink:0;}
+.next-arrow:hover{border-color:var(--red);background:var(--red);}
+.next-arrow svg{width:24px;height:24px;stroke:var(--bone);fill:none;}
+footer{border-top:1px solid var(--gray);padding:24px 48px;display:flex;justify-content:space-between;}
+.footer-copy{font-size:9px;letter-spacing:.3em;color:var(--gray);text-transform:uppercase;}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(44px);transition:opacity 1s cubic-bezier(0.16,1,0.3,1),transform 1s cubic-bezier(0.16,1,0.3,1);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.12s;}.reveal-delay-2{transition-delay:.24s;}
+.reveal-img{opacity:0;transform:scale(1.04);transition:opacity 1.2s cubic-bezier(0.16,1,0.3,1),transform 1.2s cubic-bezier(0.16,1,0.3,1);}
+.reveal-img.visible{opacity:1;transform:scale(1);}
+.reveal-card{opacity:0;transform:translateY(60px);transition:opacity .8s cubic-bezier(0.16,1,0.3,1),transform .8s cubic-bezier(0.16,1,0.3,1);}
+.reveal-card.visible{opacity:1;transform:translateY(0);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes extendLine{from{width:0}to{width:48px}}
+
+@media(max-width:768px){
+  nav{padding:20px 24px;}#hero{padding:0 24px 60px;}
+  #overview{grid-template-columns:1fr;gap:40px;padding:80px 24px;}.overview-left{position:static;}
+  .pad,.pad-sm,#role,#next{padding-left:24px;padding-right:24px;}
+  .role-grid,.two-col,.three-col{grid-template-columns:1fr;}
+  #next{flex-direction:column;gap:40px;}
+}
+</style>
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<nav id="nav">
+  <a href="/" class="nav-logo">WS®</a>
+  <a href="/" class="nav-back">All Work</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg" style="background-image:url('../assets/images/B&M/689cd8c75850a53e1032d0e8_classics-p-1600.png');"></div>
+  <div class="hero-bg-overlay"></div>
+  <div class="hero-scanlines"></div>
+  <div class="hero-meta">
+    <div><p class="hero-meta-label">Client</p><p class="hero-meta-value">Barrister and Mann</p></div>
+    <div><p class="hero-meta-label">Scope</p><p class="hero-meta-value">Brand Identity · Packaging · Print</p></div>
+    <div><p class="hero-meta-label">Year</p><p class="hero-meta-value">2016 — 2018</p></div>
+  </div>
+  <h1 class="hero-title">Barrister<br>&amp; <em>Mann</em></h1>
+  <p class="hero-eyeline">Where molecular chemistry meets modern craft.</p>
+  <p class="hero-scroll-hint">Scroll</p>
+</section>
+
+<section id="overview">
+  <div class="overview-left">
+    <div class="overview-eyebrow reveal">↳ Project Background</div>
+    <div class="overview-num reveal">07</div>
+    <h2 class="overview-heading reveal">The Science<br>of <em>Scent</em></h2>
+  </div>
+  <div class="overview-right">
+    <p class="overview-intro reveal">A scent-driven grooming brand reimagined — modern identity and packaging that honors craft and sensory experience.</p>
+    <div class="overview-body reveal reveal-delay-1">
+      <p>Barrister &amp; Mann, a men's grooming brand rooted in the <strong>molecular chemistry of scent</strong>, needed an identity as unexpected and meticulously crafted as their fragrances.</p>
+      <p>We delivered a flexible, modern brand identity paired with a cohesive packaging system that feels luxurious yet contemporary. The packaging was inspired by <strong>records</strong> — where the art is forefront, and the label becomes a canvas to bring each fragrance to life. The logo was derived from the combination of two molecules; this molecular vibration in chemistry is what we create and interpret as scent — a concept that served as a flexible, modular mark that scales across all print and digital needs.</p>
+      <p>Each element, from <strong>typography to messaging</strong>, reinforces the brand's sensory sophistication. The result: a distinct, memorable experience that elevated Barrister &amp; Mann above the competition.</p>
+    </div>
+  </div>
+</section>
+
+<section id="role">
+  <div class="section-header reveal">
+    <div><div class="section-label">↳ My Role</div><h2 class="section-title">Full<br><em>System</em></h2></div>
+    <p class="section-note">End-to-end brand building — from logo and identity through packaging, print, and event design.</p>
+  </div>
+  <div class="role-grid">
+    <div class="role-item reveal-card">
+      <div class="role-num">01</div>
+      <h3 class="role-title">Brand Identity</h3>
+      <p class="role-body">Logo system rooted in molecular chemistry. The B—M mark derived from molecular vibration — the mechanism by which we perceive scent.</p>
+    </div>
+    <div class="role-item reveal-card reveal-delay-1">
+      <div class="role-num">02</div>
+      <h3 class="role-title">Packaging System</h3>
+      <p class="role-body">A flexible label architecture inspired by record art — each fragrance gets its own illustrated canvas while staying within a unified system.</p>
+    </div>
+    <div class="role-item reveal-card reveal-delay-1">
+      <div class="role-num">03</div>
+      <h3 class="role-title">Event & Print</h3>
+      <p class="role-body">Whirlwind Tour poster and postcard series — city-specific prints using the razor blade as a structural frame for local landmarks.</p>
+    </div>
+    <div class="role-item reveal-card reveal-delay-2">
+      <div class="role-num">04</div>
+      <h3 class="role-title">Typography</h3>
+      <p class="role-body">Stratum No.2 Bold as the brand voice — geometric, industrial, and authoritative, contrasted with the organic curves of the label illustrations.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Logo lockup full width -->
+<div class="pad-sm">
+  <img src="../assets/images/B&M/689cd49fa2018342fde187bf_960a3f41896477.586dbfbce761a-p-1600.webp" alt="Barrister and Mann logo lockup" class="full-img reveal-img">
+</div>
+
+<!-- Packaging: Cologne Russe + Bay Rum -->
+<div class="pad-sm">
+  <div class="two-col">
+    <img src="../assets/images/B&M/689cd6890e5931bb81d5788a_2cfc1047063877.599335bd87789-p-1600.webp" alt="Cologne Russe — bottle and tin" class="full-img reveal-img">
+    <img src="../assets/images/B&M/689cd68924e8b6cf0a14bf8a_26f36b47063877.599335bd883e4-p-1600.webp" alt="Bay Rum — bottle and tin" class="full-img reveal-img reveal-delay-1">
+  </div>
+</div>
+
+<!-- Seville + Hallows -->
+<div class="pad-sm">
+  <div class="two-col">
+    <img src="../assets/images/B&M/689cd5dc96dcd96eb67698f5_6cf5c541896477.5993345fb32b3-p-1600.webp" alt="Seville — bottle and tin" class="full-img reveal-img">
+    <img src="../assets/images/B&M/689cd9028ba51c180fc7b5d1_hallows-p-1600.png" alt="Hallows limited edition tins" class="full-img reveal-img reveal-delay-1">
+  </div>
+</div>
+
+<!-- 6-bottle classics lineup full width -->
+<div class="pad-sm">
+  <img src="../assets/images/B&M/689cd8c75850a53e1032d0e8_classics-p-1600.png" alt="Barrister's Reserve aftershave collection" class="full-img reveal-img">
+</div>
+
+<!-- Patent art classics bottles -->
+<section class="pad-sm">
+  <div class="section-header reveal" style="margin:80px 48px 60px;border-top:1px solid var(--gray);padding-top:32px;">
+    <div><div class="section-label">↳ The Classics Line</div><h2 class="section-title">Patent Art<br><em>Revisited</em></h2></div>
+    <p class="section-note">Historical patent drawings etched onto amber glass — objects of craft, not just containers.</p>
+  </div>
+  <img src="../assets/images/B&M/689cd6d122f2378c82586ef3_9a79b341896477.59a83dc09b18b-p-1600.webp" alt="Barrister and Mann Classics patent art bottles" class="full-img reveal-img">
+</section>
+
+<!-- Event Design section -->
+<section class="pad-sm" style="margin-top:120px;">
+  <div class="section-header reveal" style="margin:0 48px 60px;border-top:1px solid var(--gray);padding-top:32px;">
+    <div><div class="section-label">↳ Event Design</div><h2 class="section-title">Whirlwind<br><em>Tour</em></h2></div>
+    <p class="section-note">City-to-city event posters for the Barrister's Reserve tour — each city's landmark redrawn as a silhouette inside a razor blade.</p>
+  </div>
+  <img src="../assets/images/B&M/689cd775a91d0fc785f4315d_98980545702693.583a26285aefd-p-1600.webp" alt="Whirlwind Tour posters on wall" class="full-img reveal-img">
+</section>
+
+<!-- Chicago + Seattle posters -->
+<div class="pad-sm">
+  <div class="two-col">
+    <img src="../assets/images/B&M/689cd790b5bf200810b61493_b2637545702693.5873039c3eda0-p-1600.webp" alt="Chicago Merchant and Rhoades Shave Show poster" class="full-img reveal-img">
+    <img src="../assets/images/B&M/689cd71ec0679bfd2c8c90a3_30bcd541896477.5874edc495448-p-1600.webp" alt="Seattle Shave Con poster" class="full-img reveal-img reveal-delay-1">
+  </div>
+</div>
+
+<!-- Orange postcards stacked -->
+<div class="pad-sm">
+  <img src="../assets/images/B&M/689cd790120148bdd1f8f526_ff473c45702693.588ff9f20430e-p-1600.webp" alt="Chicago event postcards" class="full-img reveal-img">
+</div>
+
+<!-- Fanned colorful postcards -->
+<div class="pad-sm">
+  <img src="../assets/images/B&M/689cd7904059bc07fa995215_ba06f145702693.588827979838c-p-1600.webp" alt="Whirlwind Tour postcard series — full set" class="full-img reveal-img">
+</div>
+
+<!-- Red poster detail -->
+<div class="pad-sm">
+  <img src="../assets/images/B&M/689cd71e452a729e765cd489_514bc441896477.588826cf0d6d0-p-1600.webp" alt="Barrister's Reserve Whirlwind Tour poster detail" class="full-img reveal-img">
+</div>
+
+<!-- Brand System section -->
+<section class="pad-sm" style="margin-top:120px;">
+  <div class="section-header reveal" style="margin:0 48px 60px;border-top:1px solid var(--gray);padding-top:32px;">
+    <div><div class="section-label">↳ Brand System</div><h2 class="section-title">Built to<br><em>Scale</em></h2></div>
+    <p class="section-note">Typography, stationery, and identity elements designed as a modular system — consistent at every touchpoint.</p>
+  </div>
+  <img src="../assets/images/B&M/689cd7dc90affe313e9d6e58_370f7d41896477.5874ec30d5b43-p-1600.webp" alt="Stratum No.2 Bold typeface — brand typography" class="full-img reveal-img">
+</section>
+
+<!-- Stationery -->
+<div class="pad">
+  <img src="../assets/images/B&M/689cd5c2eeff62ee60df176c_0441e141896477.588827fe960d5-p-1600.webp" alt="Barrister and Mann stationery system" class="full-img reveal-img">
+</div>
+
+<section id="next">
+  <div>
+    <p class="next-label reveal">Next Case Study</p>
+    <h2 class="next-title reveal reveal-delay-1">McGraw Hill<br><em>Smarty Ants</em></h2>
+  </div>
+  <a href="mcgraw-hill.html" class="next-arrow">
+    <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+  </a>
+</section>
+<footer>
+  <span class="footer-copy">© 2024 Will Schroeder®. All rights reserved.</span>
+</footer>
+
+<script>
+  const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px';});
+  function animateRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animateRing);}
+  animateRing();
+  document.querySelectorAll('a,button').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cursor.classList.add('expand');ring.classList.add('expand');});
+    el.addEventListener('mouseleave',()=>{cursor.classList.remove('expand');ring.classList.remove('expand');});
+  });
+  const nav=document.getElementById('nav');
+  window.addEventListener('scroll',()=>{if(window.scrollY>80)nav.classList.add('scrolled');else nav.classList.remove('scrolled');});
+  const reveals=document.querySelectorAll('.reveal,.reveal-img,.reveal-card');
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.08,rootMargin:'0px 0px -60px 0px'});
+  reveals.forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
